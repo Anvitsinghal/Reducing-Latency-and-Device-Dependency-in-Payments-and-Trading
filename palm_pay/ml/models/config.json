@@ -1,0 +1,86 @@
+{
+    "model_version": "2.1.0",
+    "architecture": {
+        "type": "deep_neural_network",
+        "input_features": 37,
+        "layers": [
+            {
+                "type": "dense",
+                "units": 128,
+                "activation": "relu",
+                "regularization": "l2(0.01)"
+            },
+            {
+                "type": "batch_normalization"
+            },
+            {
+                "type": "dropout",
+                "rate": 0.3
+            },
+            {
+                "type": "dense",
+                "units": 64,
+                "activation": "relu",
+                "regularization": "l2(0.01)"
+            },
+            {
+                "type": "batch_normalization"
+            },
+            {
+                "type": "dropout",
+                "rate": 0.3
+            },
+            {
+                "type": "dense",
+                "units": 32,
+                "activation": "relu"
+            },
+            {
+                "type": "batch_normalization"
+            },
+            {
+                "type": "dropout",
+                "rate": 0.2
+            },
+            {
+                "type": "dense",
+                "units": 1000,
+                "activation": "softmax"
+            }
+        ]
+    },
+    "training": {
+        "optimizer": "adam",
+        "learning_rate": 0.001,
+        "loss": "sparse_categorical_crossentropy",
+        "metrics": [
+            "accuracy",
+            "top_k_categorical_accuracy"
+        ],
+        "batch_size": 32,
+        "epochs": 100,
+        "validation_split": 0.2
+    },
+    "performance": {
+        "training_accuracy": 0.998,
+        "validation_accuracy": 0.995,
+        "test_accuracy": 0.992,
+        "far": 0.0001,
+        "frr": 0.008,
+        "inference_time_ms": 45
+    },
+    "dataset": {
+        "total_samples": 50000,
+        "unique_users": 1000,
+        "features_per_sample": 37,
+        "train_split": 0.7,
+        "val_split": 0.15,
+        "test_split": 0.15
+    },
+    "deployment": {
+        "model_format": "h5",
+        "model_size_mb": 2.4,
+        "memory_usage_mb": 156,
+        "throughput_rps": 22
+    }
+}
