@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <title>PALMPAY - Gaming Hub</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #000000;
+      min-height: 100vh;
+      color: #fff;
+      position: relative;
+      overflow-x: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    body.light-mode {
+      background: #f5f5f5;
+      color: #1a1a1a;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 60% 70%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+      animation: backgroundShift 20s ease infinite;
+      z-index: -1;
+      transition: opacity 0.3s ease;
+    }
+
+    body.light-mode::before {
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 60% 70%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+    }
+
+    @keyframes backgroundShift {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(-5%, -5%); }
+      50% { transform: translate(-10%, 5%); }
+      75% { transform: translate(5%, -5%); }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      width: 80px;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0;
+      gap: 20px;
+      z-index: 100;
+      transition: all 0.3s ease;
+    }
+
+    body.light-mode .sidebar {
+      background: rgba(255, 255, 255, 0.9);
+      border-right: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-logo {
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+
+    .nav-item {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid transparent;
+      position: relative;
+    }
+
+    body.light-mode .nav-item {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .nav-item:hover {
+      transform: scale(1.1);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .nav-tooltip {
+      position: absolute;
+      left: 70px;
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    body.light-mode .nav-tooltip {
+      background: rgba(0, 0, 0, 0.8);
+    }
+
+    .nav-item:hover .nav-tooltip {
+      opacity: 1;
+    }
+
+    .theme-toggle {
+      margin-top: auto;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1) rotate(20deg);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 80px;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.1em;
+      color: #a8a8a8;
+    }
+
+    body.light-mode .header p {
+      color: #666;
+    }
+
+    /* Page Sections */
+    .page-section {
+      display: none;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .page-section.active {
+      display: block;
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 25px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      transition: all 0.3s ease;
+    }
+
+    body.light-mode .container {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px 0 rgba(102, 126, 234, 0.4);
+    }
+
+    .container h2 {
+      font-size: 1.8em;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      color: #fff;
+    }
+
+    body.light-mode .container h2 {
+      color: #1a1a1a;
+    }
+
+    .icon {
+      font-size: 1.3em;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Wallet Styles */
+    .wallet-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    button {
+      padding: 15px 25px;
+      font-size: 1em;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    button:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    #connectDemoButton, #connectRealButton {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    #connectDemoButton:hover, #connectRealButton:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+    }
+
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    body.light-mode button:disabled {
+      background: #ccc;
+    }
+
+    #walletInfo {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      padding: 25px;
+      margin-top: 20px;
+    }
+
+    body.light-mode #walletInfo {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    #walletInfo p {
+      margin: 15px 0;
+      font-size: 1.1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #walletInfo strong {
+      color: #667eea;
+    }
+
+    #walletBalance {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #4ade80;
+      text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+    }
+
+    #walletAddress {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      color: #a8a8a8;
+      word-break: break-all;
+    }
+
+    body.light-mode #walletAddress {
+      color: #666;
+    }
+
+    #refreshButton {
+      background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+      color: white;
+      margin-top: 15px;
+    }
+
+    #refreshButton:hover {
+      box-shadow: 0 5px 20px rgba(74, 222, 128, 0.5);
+    }
+
+    #addDevEthButton {
+      background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+      color: white;
+      margin-top: 15px;
+    }
+
+    #addDevEthButton:hover {
+      box-shadow: 0 5px 20px rgba(251, 146, 60, 0.5);
+    }
+
+    #faucetLink {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 12px 25px;
+      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    #faucetLink:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(236, 72, 153, 0.5);
+    }
+
+    /* Vault Styles */
+    .upload-section {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 20px;
+    }
+
+    body.light-mode .upload-section {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 15px;
+      border: 2px dashed rgba(102, 126, 234, 0.5);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    body.light-mode input[type="file"] {
+      background: rgba(0, 0, 0, 0.02);
+      color: #1a1a1a;
+      border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    input[type="file"]:hover {
+      border-color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    input[type="number"] {
+      transition: all 0.3s ease;
+    }
+
+    body.light-mode input[type="number"] {
+      color: #1a1a1a;
+    }
+
+    #uploadButton {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 18px;
+      font-size: 1.1em;
+    }
+
+    #uploadButton:hover {
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    #status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 1.1em;
+    }
+
+    #result {
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+      font-family: 'Courier New', monospace;
+      word-break: break-all;
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+
+    body.light-mode #result {
+      background: rgba(0, 0, 0, 0.05);
+      color: #22c55e;
+    }
+
+    #filesList {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      padding: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    body.light-mode #filesList {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .file-item {
+      background: rgba(102, 126, 234, 0.2);
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    body.light-mode .file-item {
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .file-item:hover {
+      background: rgba(102, 126, 234, 0.3);
+      transform: translateX(5px);
+    }
+
+    .file-info {
+      flex: 1;
+    }
+
+    .file-name {
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 5px;
+      word-break: break-word;
+    }
+
+    body.light-mode .file-name {
+      color: #1a1a1a;
+    }
+
+    .file-cid {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      color: #a8a8a8;
+      word-break: break-all;
+    }
+
+    body.light-mode .file-cid {
+      color: #666;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .file-btn {
+      padding: 8px 15px;
+      font-size: 0.9em;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .view-btn {
+      background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+      color: white;
+    }
+
+    .delete-btn {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+
+    .file-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .empty-files {
+      text-align: center;
+      padding: 30px;
+      color: #a8a8a8;
+    }
+
+    body.light-mode .empty-files {
+      color: #666;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: rgba(102, 126, 234, 0.2);
+      padding: 15px;
+      border-radius: 12px;
+      text-align: center;
+      border: 1px solid rgba(102, 126, 234, 0.3);
+    }
+
+    body.light-mode .stat-card {
+      background: rgba(102, 126, 234, 0.1);
+      border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    .stat-number {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 0.9em;
+      color: #a8a8a8;
+    }
+
+    body.light-mode .stat-label {
+      color: #666;
+    }
+
+    /* Coming Soon Page */
+    .coming-soon {
+      text-align: center;
+      padding: 100px 20px;
+    }
+
+    .coming-soon h2 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .coming-soon p {
+      font-size: 1.5em;
+      color: #a8a8a8;
+      margin-bottom: 40px;
+    }
+
+    .coming-soon-icon {
+      font-size: 8em;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.1); }
+    }
+
+    .loading {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 60px;
+        padding: 15px 0;
+      }
+
+      .nav-item {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+
+      .main-content {
+        margin-left: 60px;
+      }
+
+      .page-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 1.8em;
+      }
+
+      .wallet-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">🎮</div>
+    
+    <div class="nav-item active" data-page="wallet">
+      💰
+      <span class="nav-tooltip">Wallet</span>
+    </div>
+    
+    <div class="nav-item" data-page="vault">
+      🔐
+      <span class="nav-tooltip">Vault</span>
+    </div>
+    
+    <div class="nav-item" data-page="game">
+      🎯
+      <span class="nav-tooltip">Games</span>
+    </div>
+    
+    <div class="nav-item" data-page="chat">
+      💬
+      <span class="nav-tooltip">Chat</span>
+    </div>
+    
+    <button class="theme-toggle" id="themeToggle" title="Toggle Dark/Light Mode">🌙</button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="header">
+      <h1>🎮 PALMPAY - Gaming Hub</h1>
+      <p>Your ETH Wallet & Document Vault for Gaming</p>
+    </div>
+
+    <!-- Wallet Page -->
+    <div class="page-section active" id="walletPage">
+      <div class="page-grid">
+        <div class="container" id="walletContainer">
+          <h2><span class="icon">💰</span> ETH Gaming Wallet</h2>
+          
+          <div class="wallet-buttons">
+            <button id="connectDemoButton">🎮 Demo Wallet</button>
+            <button id="connectRealButton">🦊 Connect MetaMask</button>
+          </div>
+          
+          <div id="walletInfo" style="display: none;">
+            <p><strong>Status:</strong> <span id="walletStatus"></span></p>
+            <p><strong>Address:</strong> <span id="walletAddress"></span></p>
+            <p><strong>Balance:</strong> <span id="walletBalance"></span> ETH</p>
+            
+            <div class="wallet-buttons">
+              <button id="refreshButton">🔄 Refresh</button>
+              <button id="addDevEthButton">➕ Add 100 ETH</button>
+            </div>
+            
+            <a id="faucetLink" href="#" target="_blank">🚰 Get Test ETH (Faucet)</a>
+
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Games Played</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Bets Won</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">67%</div>
+                <div class="stat-label">Win Rate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vault Page -->
+    <div class="page-section" id="vaultPage">
+      <div class="page-grid">
+        <div class="container" id="uploaderContainer">
+          <h2><span class="icon">🔐</span> Document Vault</h2>
+          
+          <div class="upload-section">
+            <input type="file" id="fileInput" />
+            <button id="uploadButton">📤 Upload to IPFS</button>
+          </div>
+
+          <p id="status"></p>
+          <code id="result"></code>
+
+          <button id="showFilesButton" style="width: 100%; margin-top: 20px; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: white; padding: 15px; font-size: 1.1em;">📂 Show All Saved Files</button>
+
+          <div id="filesList" style="display: none; margin-top: 20px;"></div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-number">0</div>
+              <div class="stat-label">Documents</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">0 MB</div>
+              <div class="stat-label">Storage Used</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">5 GB</div>
+              <div class="stat-label">Available</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Games Page -->
+    <div class="page-section" id="gamePage">
+      <div class="page-grid">
+        <div class="container">
+          <h2><span class="icon">🎯</span> Road Runner</h2>
+          
+          <div class="upload-section">
+            <h3 style="margin-bottom: 15px;">Place Your Bet</h3>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 15px;">
+              <div>
+                <label style="display: block; margin-bottom: 5px; color: #a8a8a8;">Bet Amount (ETH)</label>
+                <input type="number" id="betAmount" value="0.01" step="0.01" min="0.01" style="width: 100%; padding: 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(102, 126, 234, 0.3); color: #fff; font-size: 1em;" />
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 5px; color: #a8a8a8;">Target Score</label>
+                <input type="number" id="targetScore" value="500" step="50" min="100" style="width: 100%; padding: 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(102, 126, 234, 0.3); color: #fff; font-size: 1em;" />
+              </div>
+            </div>
+            <button id="startGameButton" style="width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px; font-size: 1.1em;">🎮 Start Game</button>
+            <p id="gameStatus" style="margin-top: 15px; text-align: center; color: #a8a8a8;"></p>
+          </div>
+
+          <div style="background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 20px; margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+              <div>
+                <span style="color: #a8a8a8;">Score: </span>
+                <span id="gameScore" style="color: #10b981; font-weight: bold; font-size: 1.3em;">0</span>
+              </div>
+              <div>
+                <span style="color: #a8a8a8;">Time: </span>
+                <span id="gameTime" style="color: #667eea; font-weight: bold; font-size: 1.3em;">60s</span>
+              </div>
+            </div>
+            
+            <canvas id="gameCanvas" style="width: 100%; border-radius: 12px; background: #0ea5e9; display: block;"></canvas>
+            
+            <p style="text-align: center; margin-top: 15px; color: #a8a8a8;">
+              Press <strong style="color: #667eea;">SPACE</strong> or <strong style="color: #667eea;">↑</strong> to jump (double jump available!)
+            </p>
+          </div>
+
+          <div id="gameResult" style="display: none; background: rgba(0, 0, 0, 0.5); border-radius: 15px; padding: 25px; margin-top: 20px; text-align: center;">
+            <h3 id="resultTitle" style="font-size: 2em; margin-bottom: 15px;"></h3>
+            <p id="resultMessage" style="font-size: 1.2em; margin-bottom: 20px;"></p>
+            <button id="playAgainButton" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px;">🔄 Play Again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Page -->
+    <div class="page-section" id="chatPage">
+      <div class="coming-soon">
+        <div class="coming-soon-icon">💬</div>
+        <h2>Chat Coming Soon!</h2>
+        <p>Connect with gamers worldwide</p>
+      </div>
+      <div class="container" id="chatContainer" style="display: none;">
+        <h2>🏆 Winners' Lounge</h2>
+    
+        <div id="chatMessages" style="height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; text-align: left; margin-bottom: 10px; background: #f9f9f9;">
+        </div>
+    
+        <input type="text" id="chatInput" placeholder="Type a message..." style="width: 70%; padding: 0.5rem;" />
+        <button id="chatSend" style="width: 25%;">Send</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+
+    const socket = io('http://localhost:3000');
+
+    const listButton = document.getElementById('listButton');
+    const fileListContainer = document.getElementById('fileListContainer');
+    
+    const chatContainer = document.getElementById('chatContainer');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+
+    // --- SIDEBAR NAVIGATION ---
+    const navItems = document.querySelectorAll('.nav-item');
+    const pageSections = document.querySelectorAll('.page-section');
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const targetPage = item.getAttribute('data-page');
+        
+        navItems.forEach(nav => nav.classList.remove('active'));
+        item.classList.add('active');
+        
+        pageSections.forEach(page => page.classList.remove('active'));
+        document.getElementById(targetPage + 'Page').classList.add('active');
+      });
+    });
+
+    // --- THEME TOGGLE ---
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+    
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+      body.classList.add('light-mode');
+      themeToggle.textContent = '☀️';
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      body.classList.toggle('light-mode');
+      const isLight = body.classList.contains('light-mode');
+      themeToggle.textContent = isLight ? '☀️' : '🌙';
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    });
+
+    // --- WALLET ELEMENTS ---
+    const connectDemoButton = document.getElementById('connectDemoButton');
+    const connectRealButton = document.getElementById('connectRealButton');
+    const walletInfoEl = document.getElementById('walletInfo');
+    const walletStatusEl = document.getElementById('walletStatus');
+    const walletAddressEl = document.getElementById('walletAddress');
+    const walletBalanceEl = document.getElementById('walletBalance');
+    const faucetLinkEl = document.getElementById('faucetLink');
+    
+    const refreshButton = document.getElementById('refreshButton');
+    const addDevEthButton = document.getElementById('addDevEthButton');
+
+    // --- ETHERS CONFIGURATION ---
+    let userSigner = null;
+    let currentWalletStatus = "";
+    
+    let currentRealBalance = 0.0;
+    let localBalanceOffset = 0;
+
+    const myPersonalRPC = 'https://eth-mainnet.g.alchemy.com/v2/uSoHU11lywEIj-xTGZnhT';
+    const testnetProvider = new ethers.providers.JsonRpcProvider(myPersonalRPC);
+
+    const testnetChainId = '0xaa36a7';
+    const faucetUrl = 'https://sepoliafaucet.com/';
+
+    // --- WALLET CONNECTION LOGIC ---
+
+    async function connectRealWallet() {
+      localBalanceOffset = 0;
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: testnetChainId }],
+            });
+          } catch (switchError) {
+            if (switchError.code === 4902) {
+              alert('Please add Sepolia testnet to your MetaMask. Go to Settings > Networks > Add Network and add Sepolia.');
+            } else {
+              throw switchError;
+            }
+          }
+          
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          userSigner = provider.getSigner();
+          await updateWalletUI(userSigner, "MetaMask Connected");
+        } catch (error) {
+          console.error('Error connecting to MetaMask:', error);
+          alert(`Failed to connect wallet: ${error.message}`);
+        }
+      } else {
+        alert('MetaMask is not detected! Please install MetaMask extension from metamask.io');
+      }
+    }
+
+    async function connectDemoWallet() {
+      localBalanceOffset = 0;
+      try {
+        let privateKey = localStorage.getItem('demoPrivateKey');
+        if (!privateKey) {
+          const newWallet = ethers.Wallet.createRandom();
+          privateKey = newWallet.privateKey;
+          localStorage.setItem('demoPrivateKey', privateKey);
+          alert('New demo wallet created! Get test ETH from the faucet.');
+        } else {
+          alert('Demo wallet loaded from browser.');
+        }
+        userSigner = new ethers.Wallet(privateKey, testnetProvider);
+        await updateWalletUI(userSigner, "Demo Wallet Active");
+      } catch (error) {
+        console.error('Failed to connect demo wallet:', error);
+        alert(`Failed to connect demo wallet: ${error.message}`);
+      }
+    }
+
+    async function updateWalletUI(signer, statusText) {
+      if (!signer) return;
+      
+      currentWalletStatus = statusText;
+
+      try {
+        walletInfoEl.style.display = 'block';
+        refreshButton.style.display = 'none';
+        addDevEthButton.style.display = 'none';
+        walletStatusEl.innerText = `${statusText} (Loading...)`;
+        walletStatusEl.style.color = '#667eea';
+        walletStatusEl.classList.add('loading');
+        walletAddressEl.innerText = '...';
+        walletBalanceEl.innerText = '...';
+
+        const address = await signer.getAddress();
+        const balance = await signer.getBalance();
+        const balanceInEth = ethers.utils.formatEther(balance);
+
+        currentRealBalance = parseFloat(balanceInEth);
+        
+        if (!statusText.includes("Refreshing...")) {
+             localBalanceOffset = 0;
+        }
+        
+        const displayBalance = currentRealBalance + localBalanceOffset;
+        
+        walletStatusEl.innerText = statusText;
+        walletStatusEl.style.color = '#4ade80';
+        walletStatusEl.classList.remove('loading');
+        walletAddressEl.innerText = address;
+        walletBalanceEl.innerText = displayBalance.toFixed(5);
+        faucetLinkEl.href = faucetUrl;
+        
+        refreshButton.style.display = 'inline-block';
+        addDevEthButton.style.display = 'inline-block';
+
+        console.log('Attempting to join chat room with address:', address);
+        socket.emit('joinRoom', { address: address });
+
+      } catch (error) {
+        console.error('Failed to update wallet UI:', error);
+        walletStatusEl.innerText = 'Error loading balance';
+        walletStatusEl.style.color = '#ef4444';
+        walletStatusEl.classList.remove('loading');
+        try {
+          const address = await signer.getAddress();
+          walletAddressEl.innerText = address;
+        } catch (e) {
+          walletAddressEl.innerText = "Error loading address";
+        }
+      }
+    }
+    
+    async function refreshBalance() {
+      if (!userSigner) {
+        alert('Please connect a wallet first.');
+        return;
+      }
+      localBalanceOffset = 0;
+      
+      walletStatusEl.innerText = `${currentWalletStatus} (Refreshing...)`;
+      walletBalanceEl.innerText = '...';
+      
+      await updateWalletUI(userSigner, currentWalletStatus);
+    }
+    
+    function addDevEth() {
+        localBalanceOffset += 100;
+        const displayBalance = currentRealBalance + localBalanceOffset;
+        walletBalanceEl.innerText = displayBalance.toFixed(5);
+        walletStatusEl.innerText = `${currentWalletStatus} (Simulated)`;
+        walletStatusEl.style.color = '#fb923c';
+    }
+
+    connectDemoButton.addEventListener('click', connectDemoWallet);
+    connectRealButton.addEventListener('click', connectRealWallet);
+    refreshButton.addEventListener('click', refreshBalance);
+    addDevEthButton.addEventListener('click', addDevEth);
+
+    // --- UPLOADER LOGIC ---
+    
+    const fileInput = document.getElementById('fileInput');
+    const uploadButton = document.getElementById('uploadButton');
+    const statusEl = document.getElementById('status');
+    const resultEl = document.getElementById('result');
+    const showFilesButton = document.getElementById('showFilesButton');
+    const filesListEl = document.getElementById('filesList');
+
+    function getSavedFiles() {
+      const files = localStorage.getItem('uploadedFiles');
+      return files ? JSON.parse(files) : [];
+    }
+
+    function saveFile(fileName, cid) {
+      const files = getSavedFiles();
+      files.push({ fileName, cid, timestamp: new Date().toISOString() });
+      localStorage.setItem('uploadedFiles', JSON.stringify(files));
+      updateStats();
+    }
+
+    function deleteFile(cid) {
+      let files = getSavedFiles();
+      files = files.filter(file => file.cid !== cid);
+      localStorage.setItem('uploadedFiles', JSON.stringify(files));
+      displayFiles();
+      updateStats();
+    }
+
+    function updateStats() {
+      const files = getSavedFiles();
+      const docCount = files.length;
+      document.querySelector('.stat-card .stat-number').textContent = docCount;
+    }
+
+    function displayFiles() {
+      const files = getSavedFiles();
+      
+      if (files.length === 0) {
+        filesListEl.innerHTML = '<div class="empty-files">📭 No files uploaded yet. Upload your first document!</div>';
+      } else {
+        filesListEl.innerHTML = files.map(file => `
+          <div class="file-item">
+            <div class="file-info">
+              <div class="file-name">📄 ${file.fileName}</div>
+              <div class="file-cid">CID: ${file.cid}</div>
+            </div>
+            <div class="file-actions">
+              <button class="file-btn view-btn" onclick="viewFile('${file.cid}')">👁️ View</button>
+              <button class="file-btn delete-btn" onclick="deleteFileHandler('${file.cid}')">🗑️ Delete</button>
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      filesListEl.style.display = 'block';
+    }
+
+    showFilesButton.addEventListener('click', () => {
+      if (filesListEl.style.display === 'none') {
+        displayFiles();
+        showFilesButton.textContent = '🔼 Hide Files';
+      } else {
+        filesListEl.style.display = 'none';
+        showFilesButton.textContent = '📂 Show All Saved Files';
+      }
+    });
+
+    window.viewFile = function(cid) {
+      window.open(`https://gateway.pinata.cloud/ipfs/${cid}`, '_blank');
+    };
+
+    window.deleteFileHandler = function(cid) {
+      if (confirm('Are you sure you want to delete this file from your vault?')) {
+        deleteFile(cid);
+      }
+    };
+
+    uploadButton.addEventListener('click', async () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        statusEl.innerText = '❌ No file selected!';
+        statusEl.style.color = '#ef4444';
+        statusEl.style.background = 'rgba(239, 68, 68, 0.1)';
+        statusEl.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append('file', file); 
+
+      statusEl.innerText = '⏳ Uploading to IPFS...';
+      statusEl.style.color = '#667eea';
+      statusEl.style.background = 'rgba(102, 126, 234, 0.1)';
+      statusEl.style.border = '1px solid rgba(102, 126, 234, 0.3)';
+      statusEl.classList.add('loading');
+      uploadButton.disabled = true;
+
+      try {
+        const response = await fetch('http://localhost:3000/upload', {
+          method: 'POST',
+          body: formData, 
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          statusEl.innerText = '✅ Upload Successful!';
+          statusEl.style.color = '#4ade80';
+          statusEl.style.background = 'rgba(74, 222, 128, 0.1)';
+          statusEl.style.border = '1px solid rgba(74, 222, 128, 0.3)';
+          statusEl.classList.remove('loading');
+          resultEl.innerText = `CID: ${data.cid}`;
+          resultEl.style.display = 'block';
+          
+          saveFile(file.name, data.cid);
+          fileInput.value = '';
+        } else {
+          statusEl.innerText = `❌ Error: ${data.error}`;
+          statusEl.style.color = '#ef4444';
+          statusEl.style.background = 'rgba(239, 68, 68, 0.1)';
+          statusEl.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+          statusEl.classList.remove('loading');
+        }
+
+      } catch (error) {
+        console.error('Upload failed:', error);
+        statusEl.innerText = '❌ Upload failed. Check console.';
+        statusEl.style.color = '#ef4444';
+        statusEl.style.background = 'rgba(239, 68, 68, 0.1)';
+        statusEl.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+        statusEl.classList.remove('loading');
+      } finally {
+        uploadButton.disabled = false;
+      }
+    });
+
+    // --- CHAT LOGIC ---
+
+    socket.on('welcome', (data) => {
+      console.log('Joined chat room!', data.message);
+      chatContainer.style.display = 'block';
+      
+      const msgDiv = document.createElement('div');
+      msgDiv.style.fontStyle = 'italic';
+      msgDiv.textContent = data.message;
+      chatMessages.appendChild(msgDiv);
+    });
+
+    socket.on('rejected', (data) => {
+      console.log('Chat room access rejected:', data.message);
+      alert(data.message);
+    });
+
+    socket.on('newChatMessage', (data) => {
+      const msgDiv = document.createElement('div');
+      msgDiv.innerHTML = `<strong>${data.user}:</strong> ${data.message}`;
+      chatMessages.appendChild(msgDiv);
+      
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+
+    function sendMessage() {
+      const message = chatInput.value;
+      if (message.trim() === '' || !userSigner) return;
+
+      userSigner.getAddress().then(address => {
+        socket.emit('chatMessage', {
+          address: address,
+          message: message
+        });
+      });
+      chatInput.value = '';
+    }
+
+    chatSend.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    // --- ROAD RUNNER GAME LOGIC ---
+    
+    class RoadRunner {
+        constructor(canvas) {
+            this.canvas = canvas;
+            this.ctx = canvas.getContext('2d');
+            this.width = canvas.width = 800;
+            this.height = canvas.height = 600;
+            
+            this.score = 0;
+            this.timeLeft = 60;
+            this.gameOver = false;
+            this.gameWon = false;
+            this.startTime = Date.now();
+            
+            this.player = {
+                x: 100,
+                y: this.height - 100,
+                width: 40,
+                height: 60,
+                speed: 5,
+                jumpPower: 18,
+                velocity: 0,
+                isJumping: false,
+                isDoubleJump: false,
+                color: '#6366f1'
+            };
+            
+            this.groundY = this.height - 100;
+            this.obstacles = [];
+            this.obstacleSpeed = 5;
+            this.spawnRate = 1500;
+            this.lastSpawn = 0;
+            
+            this.powerUps = [];
+            this.particles = [];
+            this.clouds = this.createClouds();
+            this.parallax = 0;
+            
+            this.setupListeners();
+            this.animate();
+        }
+        
+        createClouds() {
+            const clouds = [];
+            for (let i = 0; i < 5; i++) {
+                clouds.push({
+                    x: Math.random() * this.width,
+                    y: Math.random() * this.height * 0.3,
+                    size: 40 + Math.random() * 40
+                });
+            }
+            return clouds;
+        }
+        
+        setupListeners() {
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                    e.preventDefault();
+                    if (!this.player.isJumping) {
+                        this.player.velocity = -this.player.jumpPower;
+                        this.player.isJumping = true;
+                        this.player.isDoubleJump = false;
+                    } else if (!this.player.isDoubleJump && this.player.velocity > 0) {
+                        this.player.velocity = -this.player.jumpPower;
+                        this.player.isDoubleJump = true;
+                    }
+                }
+            });
+        }
+        
+        spawnObstacle() {
+            const types = ['cactus', 'bird', 'barrier'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            let obstacle = {
+                x: this.width,
+                y: this.groundY,
+                width: 40,
+                height: 60,
+                type: type,
+                color: '#ef4444'
+            };
+            
+            if (type === 'bird') {
+                obstacle.y = this.groundY - 100;
+                obstacle.width = 50;
+                obstacle.height = 40;
+                obstacle.vy = Math.sin(Date.now() * 0.003) * 2;
+            } else if (type === 'barrier') {
+                obstacle.width = 30;
+                obstacle.height = 80;
+            }
+            
+            this.obstacles.push(obstacle);
+            
+            if (Math.random() < 0.2) {
+                this.powerUps.push({
+                    x: this.width,
+                    y: this.groundY - 30,
+                    width: 30,
+                    height: 30,
+                    type: 'speed'
+                });
+            }
+        }
+        
+        update() {
+            if (this.gameOver) return;
+            
+            const currentTime = Date.now();
+            const elapsed = (currentTime - this.startTime) / 1000;
+            this.timeLeft = Math.max(0, 60 - elapsed);
+            
+            if (this.timeLeft <= 0) {
+                this.endGame();
+                return;
+            }
+            
+            if (currentTime - this.lastSpawn > this.spawnRate) {
+                this.spawnObstacle();
+                this.lastSpawn = currentTime;
+            }
+            
+            this.player.velocity += 0.8;
+            this.player.y += this.player.velocity;
+            
+            if (this.player.y >= this.groundY) {
+                this.player.y = this.groundY;
+                this.player.velocity = 0;
+                this.player.isJumping = false;
+                this.player.isDoubleJump = false;
+            }
+            
+            for (let i = this.obstacles.length - 1; i >= 0; i--) {
+                const obstacle = this.obstacles[i];
+                obstacle.x -= this.obstacleSpeed;
+                
+                if (obstacle.type === 'bird') {
+                    obstacle.y += obstacle.vy || 0;
+                    obstacle.vy = Math.sin(Date.now() * 0.003) * 2;
+                }
+                
+                if (this.checkCollision(this.player, obstacle)) {
+                    this.endGame();
+                    return;
+                }
+                
+                if (obstacle.x + obstacle.width < 0) {
+                    this.score += 10;
+                    this.obstacles.splice(i, 1);
+                }
+            }
+            
+            for (let i = this.powerUps.length - 1; i >= 0; i--) {
+                const powerUp = this.powerUps[i];
+                powerUp.x -= this.obstacleSpeed;
+                
+                if (this.checkCollision(this.player, powerUp)) {
+                    this.collectPowerUp(powerUp);
+                    this.powerUps.splice(i, 1);
+                } else if (powerUp.x + powerUp.width < 0) {
+                    this.powerUps.splice(i, 1);
+                }
+            }
+            
+            for (let i = this.particles.length - 1; i >= 0; i--) {
+                const particle = this.particles[i];
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vy += 0.3;
+                particle.life--;
+                
+                if (particle.life <= 0) {
+                    this.particles.splice(i, 1);
+                }
+            }
+            
+            this.parallax -= this.obstacleSpeed * 0.5;
+            
+            if (this.score > 0 && this.score % 100 === 0) {
+                this.obstacleSpeed += 0.5;
+                this.spawnRate = Math.max(800, this.spawnRate - 50);
+            }
+        }
+        
+        checkCollision(obj1, obj2) {
+            return obj1.x < obj2.x + obj2.width &&
+                   obj1.x + obj1.width > obj2.x &&
+                   obj1.y < obj2.y + obj2.height &&
+                   obj1.y + obj1.height > obj2.y;
+        }
+        
+        collectPowerUp(powerUp) {
+            this.score += 50;
+            
+            for (let i = 0; i < 10; i++) {
+                this.particles.push({
+                    x: powerUp.x + powerUp.width / 2,
+                    y: powerUp.y + powerUp.height / 2,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    color: '#10b981',
+                    life: 30
+                });
+            }
+        }
+        
+        render() {
+            const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
+            gradient.addColorStop(0, '#0ea5e9');
+            gradient.addColorStop(1, '#0284c7');
+            this.ctx.fillStyle = gradient;
+            this.ctx.fillRect(0, 0, this.width, this.height);
+            
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            for (const cloud of this.clouds) {
+                const cloudX = (cloud.x + this.parallax * 0.1) % (this.width + 100);
+                this.drawCloud(cloudX, cloud.y, cloud.size);
+            }
+            
+            this.ctx.fillStyle = '#84cc16';
+            this.ctx.fillRect(0, this.groundY, this.width, this.height - this.groundY);
+            
+            this.ctx.strokeStyle = '#65a30d';
+            this.ctx.lineWidth = 2;
+            for (let x = 0; x < this.width; x += 100) {
+                const xPos = (x - this.parallax) % 100;
+                this.ctx.beginPath();
+                this.ctx.moveTo(xPos, this.groundY);
+                this.ctx.lineTo(xPos + 50, this.groundY + 10);
+                this.ctx.stroke();
+            }
+            
+            for (const obstacle of this.obstacles) {
+                this.ctx.fillStyle = obstacle.color;
+                
+                if (obstacle.type === 'cactus') {
+                    this.ctx.fillRect(obstacle.x, obstacle.y - obstacle.height, obstacle.width, obstacle.height);
+                    for (let i = 0; i < 3; i++) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(obstacle.x + (obstacle.width / 4) * i, obstacle.y - obstacle.height);
+                        this.ctx.lineTo(obstacle.x + (obstacle.width / 4) * i + obstacle.width / 8, obstacle.y - obstacle.height - 15);
+                        this.ctx.lineTo(obstacle.x + (obstacle.width / 4) * (i + 1), obstacle.y - obstacle.height);
+                        this.ctx.fill();
+                    }
+                } else if (obstacle.type === 'bird') {
+                    this.ctx.beginPath();
+                    this.ctx.arc(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2, obstacle.width / 2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                } else if (obstacle.type === 'barrier') {
+                    this.ctx.fillRect(obstacle.x, obstacle.y - obstacle.height, obstacle.width, obstacle.height);
+                }
+            }
+            
+            for (const powerUp of this.powerUps) {
+                this.ctx.fillStyle = '#10b981';
+                this.ctx.save();
+                this.ctx.translate(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2);
+                this.ctx.rotate(Date.now() * 0.005);
+                this.ctx.fillRect(-powerUp.width / 2, -powerUp.height / 2, powerUp.width, powerUp.height);
+                this.ctx.restore();
+            }
+            
+            this.ctx.fillStyle = this.player.color;
+            this.ctx.fillRect(this.player.x, this.player.y - this.player.height, this.player.width, this.player.height);
+            
+            this.ctx.fillStyle = 'white';
+            this.ctx.fillRect(this.player.x + 10, this.player.y - this.player.height + 10, 8, 8);
+            this.ctx.fillRect(this.player.x + 22, this.player.y - this.player.height + 10, 8, 8);
+            
+            for (const particle of this.particles) {
+                this.ctx.fillStyle = particle.color;
+                this.ctx.globalAlpha = particle.life / 30;
+                this.ctx.fillRect(particle.x - 2, particle.y - 2, 4, 4);
+                this.ctx.globalAlpha = 1;
+            }
+            
+            this.ctx.globalAlpha = 0.1;
+            this.ctx.fillStyle = this.player.color;
+            this.ctx.fillRect(this.player.x - 5, this.player.y - this.player.height + 5, this.player.width + 10, this.player.height - 10);
+            this.ctx.globalAlpha = 1;
+        }
+        
+        drawCloud(x, y, size) {
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+            this.ctx.arc(x + size * 0.6, y, size * 0.6, 0, Math.PI * 2);
+            this.ctx.arc(x + size * 1.2, y, size * 0.5, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        
+        animate() {
+            this.update();
+            this.render();
+            
+            if (!this.gameOver) {
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        endGame() {
+            this.gameOver = true;
+            this.gameWon = this.score >= parseInt(document.getElementById('targetScore').value);
+        }
+        
+        getScore() {
+            return this.score;
+        }
+        
+        getTimeLeft() {
+            return this.timeLeft;
+        }
+        
+        getGameWon() {
+            return this.gameWon;
+        }
+    }
+
+    // Game UI Controls
+    const gameCanvas = document.getElementById('gameCanvas');
+    const gameScoreEl = document.getElementById('gameScore');
+    const gameTimeEl = document.getElementById('gameTime');
+    const startGameButton = document.getElementById('startGameButton');
+    const gameStatusEl = document.getElementById('gameStatus');
+    const gameResultEl = document.getElementById('gameResult');
+    const resultTitleEl = document.getElementById('resultTitle');
+    const resultMessageEl = document.getElementById('resultMessage');
+    const playAgainButton = document.getElementById('playAgainButton');
+    const betAmountInput = document.getElementById('betAmount');
+    const targetScoreInput = document.getElementById('targetScore');
+
+    let currentGame = null;
+    let gameUpdateInterval = null;
+    let currentBet = 0;
+    let targetScore = 500;
+
+    function startGame() {
+        if (!userSigner) {
+            alert('Please connect your wallet first!');
+            return;
+        }
+
+        currentBet = parseFloat(betAmountInput.value);
+        targetScore = parseInt(targetScoreInput.value);
+
+        if (currentBet <= 0) {
+            alert('Please enter a valid bet amount!');
+            return;
+        }
+
+        const displayBalance = currentRealBalance + localBalanceOffset;
+        if (currentBet > displayBalance) {
+            alert('Insufficient balance! Please add more ETH or reduce your bet.');
+            return;
+        }
+
+        localBalanceOffset -= currentBet;
+        walletBalanceEl.innerText = (currentRealBalance + localBalanceOffset).toFixed(5);
+
+        gameResultEl.style.display = 'none';
+        startGameButton.disabled = true;
+        betAmountInput.disabled = true;
+        targetScoreInput.disabled = true;
+        gameStatusEl.innerText = `🎮 Game Active | Bet: ${currentBet} ETH | Target: ${targetScore}`;
+        gameStatusEl.style.color = '#10b981';
+
+        currentGame = new RoadRunner(gameCanvas);
+
+        gameUpdateInterval = setInterval(() => {
+            if (currentGame) {
+                gameScoreEl.innerText = currentGame.getScore();
+                gameTimeEl.innerText = Math.ceil(currentGame.getTimeLeft()) + 's';
+
+                if (currentGame.gameOver) {
+                    endGame();
+                }
+            }
+        }, 100);
+    }
+
+    function endGame() {
+        clearInterval(gameUpdateInterval);
+        
+        const finalScore = currentGame.getScore();
+        const won = currentGame.getGameWon();
+
+        gameResultEl.style.display = 'block';
+        
+        if (won) {
+            const winnings = currentBet * 2;
+            localBalanceOffset += winnings;
+            walletBalanceEl.innerText = (currentRealBalance + localBalanceOffset).toFixed(5);
+            
+            resultTitleEl.innerText = '🎉 YOU WON!';
+            resultTitleEl.style.color = '#10b981';
+            resultMessageEl.innerHTML = `Score: ${finalScore}<br>Winnings: +${winnings.toFixed(3)} ETH`;
+            resultMessageEl.style.color = '#10b981';
+            gameStatusEl.innerText = '🏆 Victory! You doubled your bet!';
+            gameStatusEl.style.color = '#10b981';
+        } else {
+            resultTitleEl.innerText = '💔 GAME OVER';
+            resultTitleEl.style.color = '#ef4444';
+            resultMessageEl.innerHTML = `Score: ${finalScore} / ${targetScore}<br>Lost: -${currentBet.toFixed(3)} ETH`;
+            resultMessageEl.style.color = '#ef4444';
+            gameStatusEl.innerText = '😢 Better luck next time!';
+            gameStatusEl.style.color = '#ef4444';
+        }
+    }
+
+    function resetGame() {
+        currentGame = null;
+        startGameButton.disabled = false;
+        betAmountInput.disabled = false;
+        targetScoreInput.disabled = false;
+        gameResultEl.style.display = 'none';
+        gameScoreEl.innerText = '0';
+        gameTimeEl.innerText = '60s';
+        gameStatusEl.innerText = '';
+        
+        initializeCanvas();
+    }
+
+    function initializeCanvas() {
+        const ctx = gameCanvas.getContext('2d');
+        const width = gameCanvas.width = 800;
+        const height = gameCanvas.height = 600;
+        
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, '#0ea5e9');
+        gradient.addColorStop(1, '#0284c7');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+        
+        ctx.fillStyle = '#84cc16';
+        ctx.fillRect(0, height - 100, width, 100);
+        
+        ctx.fillStyle = '#6366f1';
+        ctx.fillRect(100, height - 160, 40, 60);
+        
+        ctx.fillStyle = 'white';
+        ctx.fillRect(110, height - 150, 8, 8);
+        ctx.fillRect(122, height - 150, 8, 8);
+        
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        for (let i = 0; i < 3; i++) {
+            const x = 200 + i * 250;
+            const y = 80 + i * 40;
+            ctx.beginPath();
+            ctx.arc(x, y, 25, 0, Math.PI * 2);
+            ctx.arc(x + 30, y, 30, 0, Math.PI * 2);
+            ctx.arc(x + 60, y, 25, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(600, height - 160, 40, 60);
+        
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 36px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('🎮 ROAD RUNNER', width / 2, height / 2 - 40);
+        
+        ctx.font = '20px Arial';
+        ctx.fillText('Place your bet and click Start Game!', width / 2, height / 2 + 20);
+        
+        ctx.font = '16px Arial';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillText('Use SPACE or ↑ to jump', width / 2, height / 2 + 60);
+    }
+
+    startGameButton.addEventListener('click', startGame);
+    playAgainButton.addEventListener('click', resetGame);
+
+    initializeCanvas();
+    updateStats();
+  </script>
+
+</body>
+</html>
