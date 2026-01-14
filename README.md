@@ -1,6 +1,6 @@
-# 🚀 PlamPay - Gesture-Powered Biometric Payment System
+# 🚀 Reducing Latency and Device Dependency in Payments and Trading
 
-> **Reducing Latency and Device Dependency in Payments and Trading**  
+> **Gesture-Powered Biometric Payment System**  
 > A revolutionary palm biometric authentication system with gesture-based controls for instant, device-free transactions.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
@@ -9,7 +9,9 @@
 [![Flask](https://img.shields.io/badge/Flask-3.0-black.svg)](https://flask.palletsprojects.com/)
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-0.10-orange.svg)](https://mediapipe.dev/)
 
-**🏆 Built by Team Charlizard for GitHub Hackathon 2026**
+**🏆 Built by Team Charlizard for Innovate 3.O Hackathon 2026**
+
+**🎬 [Watch Demo Video](https://drive.google.com/file/d/1fY6Y1ihFTkSvizjRJTwi7VRoO9WyC2VL/view?usp=drive_link)**
 
 ---
 
@@ -67,12 +69,20 @@ Traditional payment and trading systems face critical challenges:
 - **Swipe Left**: Cancel operation
 - **Palm Open/Fist**: Quick actions
 
+### 🤖 Autonomous Agent Integration
+- **Intelligent Decision Making**: AI agents autonomously process and verify transactions
+- **Real-Time Analysis**: Agents continuously monitor gesture patterns and biometric data
+- **Fraud Detection**: Autonomous agents detect suspicious activities and prevent fraudulent transactions
+- **Adaptive Learning**: Agents learn user behavior patterns to improve accuracy over time
+- **Multi-Agent Coordination**: Multiple specialized agents work together for seamless transaction processing
+
 ### 🔬 How It Works
 1. **Enrollment**: User registers palm biometrics via camera
 2. **Authentication**: AI model verifies identity in <50ms
-3. **Gesture Detection**: Real-time gesture recognition for actions
-4. **Transaction**: Instant payment/trade execution
-5. **Confirmation**: Real-time feedback with beautiful UI
+3. **Agent Processing**: Autonomous agents analyze and validate the transaction request
+4. **Gesture Detection**: Real-time gesture recognition for actions
+5. **Transaction**: Instant payment/trade execution with agent approval
+6. **Confirmation**: Real-time feedback with beautiful UI
 
 ---
 
@@ -106,6 +116,14 @@ Traditional payment and trading systems face critical challenges:
 - ✅ **Pinch/Spread**: Distance-based gesture recognition
 - ✅ **Static Gestures**: Palm open, fist, tap detection
 - ✅ **Compound Gestures**: Multi-step gesture sequences
+
+### 🤖 Autonomous Agent Capabilities
+- ✅ **Transaction Validation Agent**: Verifies transaction legitimacy and user authorization
+- ✅ **Fraud Detection Agent**: Monitors patterns and flags suspicious activities in real-time
+- ✅ **Biometric Verification Agent**: Processes palm authentication with ML algorithms
+- ✅ **Gesture Analysis Agent**: Interprets and classifies hand gestures autonomously
+- ✅ **Risk Assessment Agent**: Evaluates transaction risk scores and applies security policies
+- ✅ **Multi-Agent Orchestration**: Coordinated decision-making across specialized agents
 
 ---
 
@@ -145,6 +163,14 @@ Gabor Filters       - Texture Features
 Kalman Filter       - Tremor Smoothing
 ```
 
+### Autonomous Agents
+```
+LangChain           - Agent Framework & Orchestration
+OpenAI GPT-4        - Decision Making & Analysis
+Custom ML Models    - Specialized Agent Behaviors
+Multi-Agent System  - Coordinated Transaction Processing
+```
+
 ---
 
 ## 🏗️ Architecture
@@ -175,11 +201,14 @@ Kalman Filter       - Tremor Smoothing
 2. **MediaPipe** → Extracts 21 hand landmarks
 3. **Feature Extraction** → Computes palm features (geometric, texture, keypoints)
 4. **Frontend** → Sends features to backend API
-5. **Backend** → Verifies with palm authentication service
-6. **Gesture Service** → Processes gesture trajectory
-7. **Smoothing Service** → Applies tremor stabilization
-8. **Transaction Service** → Executes payment/trade
-9. **Response** → Returns result with latency metrics
+5. **Agent Orchestrator** → Distributes tasks to specialized autonomous agents
+6. **Biometric Agent** → Verifies palm authentication with ML models
+7. **Gesture Agent** → Processes and classifies gesture trajectory
+8. **Fraud Detection Agent** → Analyzes transaction patterns for anomalies
+9. **Risk Assessment Agent** → Evaluates transaction security score
+10. **Smoothing Service** → Applies tremor stabilization
+11. **Transaction Service** → Executes payment/trade with agent approval
+12. **Response** → Returns result with latency metrics and agent decisions
 
 ---
 
@@ -197,8 +226,8 @@ Webcam/Camera access
 
 #### 1. Clone Repository
 ```bash
-git clone https://github.com/TeamCharlizard/PlamPay.git
-cd PlamPay
+git clone https://github.com/Anvitsinghal/Reducing-Latency-and-Device-Dependency-in-Payments-and-Trading.git
+cd Reducing-Latency-and-Device-Dependency-in-Payments-and-Trading
 ```
 
 #### 2. Backend Setup
@@ -447,52 +476,59 @@ Response:
 ## 📁 Project Structure
 
 ```
-PlamPay/
-├── Backend/                      # Flask API Server
-│   ├── app.py                   # Main application entry
-│   ├── config.py                # Configuration & constants
-│   ├── routes/                  # API route handlers
-│   │   ├── auth_routes.py      # Authentication endpoints
-│   │   ├── gesture_routes.py   # Gesture processing
-│   │   └── transaction_routes.py # Payment/trade endpoints
-│   ├── services/                # Business logic layer
-│   │   ├── palm_auth_service.py # Palm biometric logic
-│   │   ├── gesture_service.py   # Gesture processing
-│   │   ├── transaction_service.py # Transaction logic
-│   │   └── smoothing_service.py # Tremor stabilization
-│   ├── models/                  # Data models
-│   │   ├── user.py             # User model
-│   │   └── transaction.py      # Transaction model
-│   └── utils/                   # Utility functions
-│       ├── logger.py           # Logging system
-│       └── latency_monitor.py  # Performance tracking
+Reducing-Latency-and-Device-Dependency-in-Payments-and-Trading/
+├── Backend/
+│   ├── app.py
+│   ├── config.py
+│   ├── routes/
+│   │   ├── auth_routes.py
+│   │   ├── gesture_routes.py
+│   │   └── transaction_routes.py
+│   ├── services/
+│   │   ├── palm_auth_service.py
+│   │   ├── gesture_service.py
+│   │   ├── transaction_service.py
+│   │   ├── smoothing_service.py
+│   │   └── agent_orchestrator.py
+│   ├── agents/
+│   │   ├── biometric_agent.py
+│   │   ├── fraud_detection_agent.py
+│   │   ├── gesture_analysis_agent.py
+│   │   ├── risk_assessment_agent.py
+│   │   └── transaction_validator_agent.py
+│   ├── models/
+│   │   ├── user.py
+│   │   └── transaction.py
+│   └── utils/
+│       ├── logger.py
+│       └── latency_monitor.py
 │
-├── frontend/                    # React Frontend
-│   ├── index.html              # HTML entry point
-│   ├── package.json            # Dependencies
-│   ├── vite.config.js          # Vite configuration
+├── frontend/
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js
 │   └── src/
-│       ├── main.jsx            # React entry
-│       ├── App.jsx             # Main app component
-│       ├── components/         # React components
-│       │   ├── GestureOverlay.jsx    # Gesture canvas
-│       │   ├── ConfirmationModal.jsx # Transaction modal
-│       │   └── TransactionStatus.jsx # Dashboard
+│       ├── main.jsx
+│       ├── App.jsx
+│       ├── components/
+│       │   ├── GestureOverlay.jsx
+│       │   ├── ConfirmationModal.jsx
+│       │   └── TransactionStatus.jsx
 │       ├── services/
-│       │   └── api.js          # API service layer
+│       │   └── api.js
 │       └── styles/
-│           └── main.css        # Global styles
+│           └── main.css
 │
-├── vision/                      # Computer Vision (Optional)
-│   ├── hand_tracking.py        # MediaPipe integration
-│   ├── palm_roi.py             # Palm region extraction
-│   ├── feature_extraction.py   # Feature computation
-│   └── gesture_classifier.py   # Gesture classification
+├── vision/
+│   ├── hand_tracking.py
+│   ├── palm_roi.py
+│   ├── feature_extraction.py
+│   └── gesture_classifier.py
 │
-├── README.md                    # This file
-├── PROJECT_STRUCTURE.md         # Detailed structure
-├── LICENSE                      # MIT License
-└── .gitignore                  # Git ignore rules
+├── README.md
+├── PROJECT_STRUCTURE.md
+├── LICENSE
+└── .gitignore
 ```
 
 ---
@@ -501,21 +537,27 @@ PlamPay/
 
 ### 🏆 What Makes PlamPay Unique
 
-1. **Gesture-Based Controls**: First payment system with full gesture support
-2. **Zero Device Dependency**: No cards, phones, or wallets required
-3. **Ultra-Low Latency**: <2s total transaction time
-4. **Tremor Stabilization**: Advanced smoothing for accessibility
-5. **Real-Time Feedback**: Live gesture trails and confidence scores
-6. **Compound Gestures**: Support for multi-step gesture sequences
-7. **Beautiful UX**: Modern dark theme with neon accents
+1. **Autonomous Agent Architecture**: First payment system with multi-agent AI decision-making
+2. **Gesture-Based Controls**: Revolutionary gesture support for payments and trading
+3. **Zero Device Dependency**: No cards, phones, or wallets required
+4. **Ultra-Low Latency**: <2s total transaction time with parallel agent processing
+5. **Intelligent Fraud Prevention**: Real-time autonomous fraud detection agents
+6. **Tremor Stabilization**: Advanced smoothing for accessibility
+7. **Real-Time Feedback**: Live gesture trails and confidence scores
+8. **Compound Gestures**: Support for multi-step gesture sequences
+9. **Beautiful UX**: Modern dark theme with neon accents
 
 ### 💪 Technical Achievements
 
 - ✅ Complete palm biometric authentication system
+- ✅ **Multi-agent autonomous transaction processing**
+- ✅ **Intelligent fraud detection with AI agents**
 - ✅ Real-time gesture recognition with 90%+ accuracy
+- ✅ **Agent-based risk assessment and validation**
 - ✅ Multiple smoothing algorithms (Kalman, exponential, adaptive)
 - ✅ Comprehensive feature extraction (geometric, texture, keypoints)
 - ✅ Production-ready REST API with latency monitoring
+- ✅ **Coordinated multi-agent decision making**
 - ✅ Modern React frontend with canvas-based interactions
 - ✅ Responsive design for all devices
 
@@ -581,9 +623,10 @@ See the [LICENSE](LICENSE) file for full details.
 
 ### Team Charlizard
 - **GitHub**: [@TeamCharlizard](https://github.com/TeamCharlizard)
-- **Project Repository**: [PlamPay](https://github.com/TeamCharlizard/PlamPay)
-- **Issues**: [Report Bug](https://github.com/TeamCharlizard/PlamPay/issues)
-- **Discussions**: [Community Forum](https://github.com/TeamCharlizard/PlamPay/discussions)
+- **Project Repository**: [Reducing Latency and Device Dependency in Payments and Trading](https://github.com/Anvitsinghal/Reducing-Latency-and-Device-Dependency-in-Payments-and-Trading)
+- **Demo Video**: [Watch on Google Drive](https://drive.google.com/file/d/1fY6Y1ihFTkSvizjRJTwi7VRoO9WyC2VL/view?usp=drive_link)
+- **Issues**: [Report Bug](https://github.com/Anvitsinghal/Reducing-Latency-and-Device-Dependency-in-Payments-and-Trading/issues)
+- **Discussions**: [Community Forum](https://github.com/Anvitsinghal/Reducing-Latency-and-Device-Dependency-in-Payments-and-Trading/discussions)
 
 ### Contributing
 We welcome contributions! Please see our contributing guidelines.
