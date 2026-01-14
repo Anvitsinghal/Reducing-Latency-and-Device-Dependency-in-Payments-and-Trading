@@ -11,7 +11,7 @@
 
 **🏆 Built by Team Charlizard for Innovate 3.O Hackathon 2026**
 
-**🎬 [Watch Demo Video](https://drive.google.com/file/d/1fY6Y1ihFTkSvizjRJTwi7VRoO9WyC2VL/view?usp=drive_link)**
+**🎬 [Watch Demo Video](https://drive.google.com/file/d/1fY6Y1ihFTkSvizjRJTwi7VRoO9WyC2VL/view?usp=sharing)**
 
 ---
 ## 📸 Project Screenshots
