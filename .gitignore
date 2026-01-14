@@ -1,6 +1,20 @@
-# Ignore the node_modules folder
-node_modules
+# PlamPay - Team Charlizard
 
-# Ignore the environment variables file
+node_modules/
+dist/
+build/
+*.pyc
+__pycache__/
 .env
-s
+.venv/
+venv/
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+coverage/
+.pytest_cache/
+plampay.db
+*.db
