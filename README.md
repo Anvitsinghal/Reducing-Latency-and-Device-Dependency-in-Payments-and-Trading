@@ -14,6 +14,38 @@
 **🎬 [Watch Demo Video](https://drive.google.com/file/d/1fY6Y1ihFTkSvizjRJTwi7VRoO9WyC2VL/view?usp=drive_link)**
 
 ---
+## 📸 Project Screenshots
+
+### 🔹 System & Vision Pipeline
+<p align="center">
+  <img src="./i1.png" width="42%" />
+  <img src="./i1.5.png" width="42%" />
+</p>
+
+### 🔹 Palm Biometric Authentication
+<p align="center">
+  <img src="./i2.png" width="42%" />
+  <img src="./i3.png" width="42%" />
+</p>
+
+### 🔹 Gesture-to-Action & Security Flow
+<p align="center">
+  <img src="./i4.png" width="42%" />
+  <img src="./i5.png" width="42%" />
+</p>
+
+### 🔹 User Interface & Transaction Flow
+<p align="center">
+  <img src="./i6.png" width="42%" />
+  <img src="./i7.png" width="42%" />
+</p>
+
+### 🔹 End-to-End Demonstration
+<p align="center">
+  <img src="./i8.png" width="55%" />
+</p>
+
+
 
 ## 📋 Table of Contents
 - [Problem Statement](#-problem-statement)
