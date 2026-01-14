@@ -594,7 +594,7 @@ We welcome contributions! Please see our contributing guidelines.
 
 ### ⭐ Star this repo if you found it helpful!
 
-**Built with ❤️ by Team Charlizard for GitHub Hackathon 2026**
+**Built with ❤️ by Team Charlizard for Innovate 3.O Hackathon 2026**
 
 🔥 **#GesturePayments #Biometrics #Innovation #TeamCharlizard** 🔥
 
