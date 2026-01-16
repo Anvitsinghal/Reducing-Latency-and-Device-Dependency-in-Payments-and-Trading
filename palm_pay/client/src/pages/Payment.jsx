@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, Scan, Check, X } from 'lucide-react';
+import { ArrowLeft, Scan, Check, X, Sparkles } from 'lucide-react';
 import { useHandDetection } from '../hooks/useHandDetection';
 import './Payment.css';
 
@@ -13,10 +13,25 @@ const Payment = () => {
     const [pin, setPin] = useState(['', '', '', '']);
     const [showPinVerify, setShowPinVerify] = useState(false);
     const [matchedUser, setMatchedUser] = useState(null);
+    const [confetti, setConfetti] = useState([]);
 
     const { user, updateUser } = useAuth();
     const navigate = useNavigate();
     const pinRefs = [useRef(), useRef(), useRef(), useRef()];
+
+    // Generate confetti particles
+    const generateConfetti = () => {
+        const particles = [];
+        for (let i = 0; i < 50; i++) {
+            particles.push({
+                id: i,
+                left: Math.random() * 100,
+                delay: Math.random() * 0.5,
+                duration: 2 + Math.random() * 1
+            });
+        }
+        setConfetti(particles);
+    };
 
     const {
         videoRef,
@@ -68,6 +83,9 @@ const Payment = () => {
             const data = await response.json();
 
             if (response.ok) {
+                // Generate confetti on successful payment
+                generateConfetti();
+                
                 setResult({
                     success: true,
                     message: 'Payment Successful!',
@@ -129,10 +147,23 @@ const Payment = () => {
     const closeResult = () => {
         setResult(null);
         setPin(['', '', '', '']);
+        setConfetti([]);
     };
 
     return (
         <div className="payment-page">
+            {/* Confetti particles */}
+            {confetti.map(particle => (
+                <div
+                    key={particle.id}
+                    className="confetti"
+                    style={{
+                        left: `${particle.left}%`,
+                        animation: `confetti-fall ${particle.duration}s linear`,
+                        animationDelay: `${particle.delay}s`
+                    }}
+                />
+            ))}
             <div className="payment-container">
                 <button onClick={() => navigate('/dashboard')} className="btn-back">
                     <ArrowLeft size={20} />
@@ -238,7 +269,7 @@ const Payment = () => {
                         animate={{ opacity: 1 }}
                     >
                         <motion.div
-                            className="modal-content glass-card"
+                            className={`modal-content glass-card ${result.success ? 'success-modal' : ''}`}
                             initial={{ scale: 0.5, y: 50, opacity: 0 }}
                             animate={{ scale: 1, y: 0, opacity: 1 }}
                             transition={{ type: 'spring', duration: 0.6 }}
@@ -258,19 +289,31 @@ const Payment = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3 }}
                             >
-                                {result.success ? '🎉 Payment Successful! 🎉' : result.message}
+                                {result.success ? '✅ Payment Successful! ✅' : result.message}
                             </motion.h2>
 
                             {result.success && (
                                 <>
+                                    <motion.div
+                                        className="success-subtitle"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 0.35 }}
+                                    >
+                                        <Sparkles size={20} style={{ display: 'inline', marginRight: '0.5rem' }} />
+                                        Trade Purchased Successfully
+                                        <Sparkles size={20} style={{ display: 'inline', marginLeft: '0.5rem' }} />
+                                    </motion.div>
+
                                     <motion.p
                                         className="result-user"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         transition={{ delay: 0.4 }}
                                     >
-                                        Paid to: {result.user.name}
+                                        Paid to: <span style={{ color: 'var(--accent)', fontWeight: '700' }}>{result.user.name}</span>
                                     </motion.p>
+
                                     <motion.div
                                         className="result-amount-box"
                                         initial={{ scale: 0.8, opacity: 0 }}
@@ -280,13 +323,14 @@ const Payment = () => {
                                         <div className="result-amount">{result.amount} som</div>
                                         <div className="result-balance">New Balance: {result.newBalance} som</div>
                                     </motion.div>
+
                                     <motion.p
                                         className="result-message"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         transition={{ delay: 0.6 }}
                                     >
-                                        ✨ Transaction completed successfully with biometric authentication
+                                        ✨ Secured with biometric authentication ✨
                                     </motion.p>
                                 </>
                             )}
@@ -300,7 +344,7 @@ const Payment = () => {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                             >
-                                {result.success ? 'Done' : 'Try Again'}
+                                {result.success ? '🎉 Done' : 'Try Again'}
                             </motion.button>
                         </motion.div>
                     </motion.div>

@@ -297,3 +297,123 @@
     color: var(--text-dim);
     margin-bottom: 2rem;
 }
+
+/* Celebratory animations */
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-10vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+@keyframes bounce-in {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes glow-pulse {
+    0%, 100% {
+        box-shadow: 0 0 60px var(--accent-glow);
+    }
+    50% {
+        box-shadow: 0 0 100px rgba(0, 255, 136, 0.6);
+    }
+}
+
+@keyframes shimmer {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes slide-in-up {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes rotate-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Confetti particles */
+.confetti {
+    position: fixed;
+    pointer-events: none;
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    animation: confetti-fall linear forwards;
+    z-index: 999;
+}
+
+.confetti:nth-child(odd) {
+    background: #ff00ff;
+}
+
+.confetti:nth-child(3n) {
+    background: #00ffff;
+}
+
+.modal-content.success-modal {
+    animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.result-icon.success {
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.result-amount {
+    animation: shimmer 2s ease-in-out infinite;
+}
+
+.text-success {
+    color: var(--success);
+    animation: slide-in-up 0.8s ease-out;
+}
+
+.text-error {
+    color: var(--error);
+}
+
+.success-subtitle {
+    font-size: 1.1rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    animation: slide-in-up 0.8s ease-out 0.35s backwards;
+}
+
+.mt-3 {
+    margin-top: 1.5rem;
+}
+
+.mt-2 {
+    margin-top: 1rem;
+}
