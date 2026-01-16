@@ -4,7 +4,7 @@ const TransactionSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        
     },
     type: {
         type: String,
@@ -13,15 +13,15 @@ const TransactionSchema = new mongoose.Schema({
     },
     amount: {
         type: Number,
-        required: true
+      
     },
     balanceBefore: {
         type: Number,
-        required: true
+        
     },
     balanceAfter: {
         type: Number,
-        required: true
+        
     },
     description: {
         type: String,

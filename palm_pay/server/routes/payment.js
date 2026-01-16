@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const { protect } = require('../middleware/auth');
@@ -12,6 +13,11 @@ router.post('/process', async (req, res) => {
     try {
         if (!userId || !amount) {
             return res.status(400).json({ message: 'Missing required fields' });
+        }
+
+        // Validate ObjectId
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid userId format' });
         }
 
         const user = await User.findById(userId);

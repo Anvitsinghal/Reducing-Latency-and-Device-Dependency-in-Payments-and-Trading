@@ -83,14 +83,14 @@ const Dashboard = () => {
                             icon={<Plus size={32} />}
                             title="Top Up"
                             description="Add balance"
-                            onClick={() => alert('Top-up feature coming soon!')}
+                            onClick={() => navigate('/topup')}
                             color="success"
                         />
                         <ActionCard
                             icon={<History size={32} />}
                             title="History"
                             description="View transactions"
-                            onClick={() => alert('Transaction history coming soon!')}
+                            onClick={() => navigate('/history')}
                             color="info"
                         />
                     </div>

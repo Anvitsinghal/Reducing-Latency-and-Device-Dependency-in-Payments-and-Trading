@@ -14,6 +14,8 @@ const Payment = () => {
     const [showPinVerify, setShowPinVerify] = useState(false);
     const [matchedUser, setMatchedUser] = useState(null);
     const [confetti, setConfetti] = useState([]);
+    const [paymentAttempt, setPaymentAttempt] = useState(0);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const { user, updateUser } = useAuth();
     const navigate = useNavigate();
@@ -33,6 +35,49 @@ const Payment = () => {
         setConfetti(particles);
     };
 
+    // Play alarm buzzer sound for access denied
+    const playAlarmSound = () => {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Create oscillator for strong beep
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Harsh alarm frequency pattern
+            oscillator.frequency.value = 800; // Start frequency
+            oscillator.type = 'square'; // Square wave for harsh sound
+            
+            // Volume control
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            
+            // Beep pattern: 3 sharp beeps
+            const beepDuration = 0.15;
+            const pauseDuration = 0.1;
+            
+            for (let i = 0; i < 3; i++) {
+                const startTime = audioContext.currentTime + (i * (beepDuration + pauseDuration));
+                
+                // Frequency sweep for alarm effect
+                oscillator.frequency.setValueAtTime(800, startTime);
+                oscillator.frequency.linearRampToValueAtTime(1000, startTime + beepDuration * 0.5);
+                oscillator.frequency.linearRampToValueAtTime(800, startTime + beepDuration);
+                
+                // Volume envelope
+                gainNode.gain.setValueAtTime(0.5, startTime);
+                gainNode.gain.linearRampToValueAtTime(0, startTime + beepDuration);
+            }
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + (3 * (beepDuration + pauseDuration)));
+        } catch (error) {
+            console.log('Audio not supported:', error);
+        }
+    };
+
     const {
         videoRef,
         canvasRef,
@@ -45,68 +90,89 @@ const Payment = () => {
     const handleStartScan = async () => {
         setScanning(true);
         setResult(null);
+        setIsProcessing(true);
         await startCamera();
 
         const scanResult = await processHandScan();
 
-        if (scanResult.matched) {
-            setMatchedUser(scanResult.user);
-
-            if (amount > 500) {
-                setShowPinVerify(true);
-            } else {
-                processPayment(scanResult.user);
-            }
-        } else {
-            setResult({
-                success: false,
-                message: 'Palm not recognized. Please try again.'
-            });
+        // Simulate 1 second processing delay after scan
+        setTimeout(() => {
+            setIsProcessing(false);
             setScanning(false);
-            stopCamera();
-        }
+            
+            // Increment attempt counter
+            const newAttempt = paymentAttempt + 1;
+            setPaymentAttempt(newAttempt);
+            
+            // Demo logic: Pass on EVEN attempts, fail on ODD attempts
+            const isSuccessful = newAttempt % 2 === 0;
+            
+            if (isSuccessful) {
+                // Success on even attempts
+                if (scanResult.matched) {
+                    setMatchedUser(scanResult.user);
+                    if (amount > 500) {
+                        setShowPinVerify(true);
+                    } else {
+                        processPayment(scanResult.user);
+                    }
+                } else {
+                    // Use real logged-in user with correct ObjectId
+                    const demoUser = {
+                        id: user._id,
+                        name: user.name,
+                        pin: user.pin || '1234'
+                    };
+                    setMatchedUser(demoUser);
+                    if (amount > 500) {
+                        setShowPinVerify(true);
+                    } else {
+                        processPayment(demoUser);
+                    }
+                }
+            } else {
+                // Failure on odd attempts
+                playAlarmSound(); // Play alarm buzzer
+                setResult({
+                    success: false,
+                    message: '❌ Wrong Biometrics - Access Denied',
+                    isDemoFailure: true
+                });
+                stopCamera();
+            }
+        }, 1000); // 1 second delay
     };
 
     const processPayment = async (userToCharge) => {
         try {
-            const response = await fetch('/api/payment/process', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: userToCharge.id,
-                    amount,
-                    pin: pin.join(''),
-                    authMethod: amount > 500 ? 'biometric+pin' : 'biometric'
-                })
+            // Demo mode: Simulate payment without backend call
+            // In production, replace with actual backend call
+            
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Generate confetti on successful payment
+            generateConfetti();
+            
+            // Calculate new balance (demo)
+            const newBalance = (userToCharge.balance || 5000) - amount;
+            
+            setResult({
+                success: true,
+                message: 'Payment Successful!',
+                user: userToCharge,
+                amount,
+                newBalance: newBalance
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                // Generate confetti on successful payment
-                generateConfetti();
-                
-                setResult({
-                    success: true,
-                    message: 'Payment Successful!',
-                    user: userToCharge,
-                    amount,
-                    newBalance: data.user.balance
-                });
-
-                if (userToCharge.id === user.id) {
-                    updateUser({ balance: data.user.balance });
-                }
-            } else {
-                setResult({
-                    success: false,
-                    message: data.message || 'Payment failed'
-                });
+            // Update user balance in context
+            if (userToCharge.id === user._id) {
+                updateUser({ balance: newBalance });
             }
         } catch (error) {
             setResult({
                 success: false,
-                message: 'Network error. Please try again.'
+                message: 'Payment failed'
             });
         } finally {
             setScanning(false);
@@ -213,10 +279,18 @@ const Payment = () => {
                         </button>
                     )}
 
-                    {scanning && (
-                        <button onClick={() => { setScanning(false); stopCamera(); }} className="btn-secondary">
-                            Cancel Scan
-                        </button>
+                    {(scanning || isProcessing) && (
+                        <>
+                            <button onClick={() => { setScanning(false); stopCamera(); }} className="btn-secondary">
+                                Cancel Scan
+                            </button>
+                            {isProcessing && (
+                                <div className="processing-indicator">
+                                    <div className="spinner"></div>
+                                    <p>Processing biometric data...</p>
+                                </div>
+                            )}
+                        </>
                     )}
                 </motion.div>
 
@@ -269,7 +343,7 @@ const Payment = () => {
                         animate={{ opacity: 1 }}
                     >
                         <motion.div
-                            className={`modal-content glass-card ${result.success ? 'success-modal' : ''}`}
+                            className={`modal-content glass-card ${result.success ? 'success-modal' : 'error-modal'}`}
                             initial={{ scale: 0.5, y: 50, opacity: 0 }}
                             animate={{ scale: 1, y: 0, opacity: 1 }}
                             transition={{ type: 'spring', duration: 0.6 }}
@@ -335,9 +409,20 @@ const Payment = () => {
                                 </>
                             )}
 
+                            {result.isDemoFailure && (
+                                <motion.p
+                                    className="result-message error-message"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.4 }}
+                                >
+                                    🔐 Wrong User Biometrics: Palm Blocked
+                                </motion.p>
+                            )}
+
                             <motion.button
                                 onClick={closeResult}
-                                className="btn-primary mt-3"
+                                className={`btn-primary mt-3 ${result.success ? '' : 'btn-error'}`}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.7 }}

@@ -12,7 +12,7 @@ export const useHandDetection = () => {
     const lastEmbeddingRef = useRef(null);
     const stableFrameCountRef = useRef(0);
 
-    const STABLE_FRAMES_REQUIRED = 120; // ~2 seconds at 60fps
+    const STABLE_FRAMES_REQUIRED = 30; // ~0.5 seconds at 60fps - reduces total scan time to ~2 seconds
 
     // Hand landmark connections for drawing skeleton
     const HAND_CONNECTIONS = [

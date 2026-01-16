@@ -7,6 +7,8 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Payment from './pages/Payment';
 import BiometricSetup from './pages/BiometricSetup';
+import TopUp from './pages/TopUp';
+import History from './pages/History';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -44,6 +46,16 @@ function App() {
                     <Route path="/biometric-setup" element={
                         <ProtectedRoute>
                             <BiometricSetup />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/topup" element={
+                        <ProtectedRoute>
+                            <TopUp />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/history" element={
+                        <ProtectedRoute>
+                            <History />
                         </ProtectedRoute>
                     } />
                 </Routes>
